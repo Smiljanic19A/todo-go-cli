@@ -20,6 +20,7 @@ var tasks []Task = []Task{}
 
 func main() {
 
+	mount()
 	for {
 		displayMenu()
 		fmt.Print("Enter a command ")
@@ -46,7 +47,7 @@ func app(input string) {
 		break
 	case "2":
 		createForm()
-
+		break
 	default:
 		displayMenu()
 
@@ -66,12 +67,10 @@ func displayMenu() {
 	fmt.Println("============================================================")
 }
 func view() {
-	tasks := readFile()
-	printTasks(tasks)
-
+	printTasks()
 }
 
-func readFile() []Task {
+func readFile() {
 	b, err := os.ReadFile(DataFileName)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -87,9 +86,8 @@ func readFile() []Task {
 	}
 
 	fileContent := string(b)
-	tasks := parseFileContent(fileContent)
+	tasks = parseFileContent(fileContent)
 
-	return tasks
 }
 
 func parseFileContent(c string) []Task {
@@ -110,21 +108,21 @@ func parseFileContent(c string) []Task {
 		tasks = append(tasks, task)
 	}
 
-	return ts
+	return tasks
 }
 
-func printTasks(t []Task) {
+func printTasks() {
 	fmt.Println("============TasksList===============")
 
-	for _, singleTask := range t {
+	for _, singleTask := range tasks {
 		fmt.Println("=============================")
 		fmt.Println(singleTask.id)
 		fmt.Println(singleTask.title)
 		fmt.Println(singleTask.content)
 		fmt.Println("=============================")
+
 	}
 
-	displayMenu()
 }
 
 func createForm() {
@@ -138,5 +136,52 @@ func createForm() {
 	reader.Scan()
 	content := reader.Text()
 	task.content = content
+	task.id = len(tasks) + 1
+	tasks = append(tasks, task)
 
+	taskString := builtTaskString(task)
+
+	fileContent := getDbContent()
+
+	newContent := fileContent + taskString
+
+	biteContent := []byte(newContent)
+
+	err := os.WriteFile(DataFileName, biteContent, 644)
+	if err != nil {
+		panic(err)
+	}
+
+}
+
+func builtTaskString(t Task) string {
+	tasksString := ""
+	tasksString += "\n"
+	tasksString += DelimiterString
+	tasksString += "\n"
+	tasksString += "title:" + t.title + "\n"
+	tasksString += "content:" + t.content
+	return tasksString
+}
+
+func mount() {
+	readFile()
+}
+
+func getDbContent() string {
+	file, err := os.ReadFile(DataFileName)
+	if err != nil {
+		if os.IsNotExist(err) {
+			fmt.Println("File not found - creating a new one")
+			_, err := os.Create(DataFileName)
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	}
+	content := string(file)
+	return content
 }
