@@ -9,6 +9,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -47,6 +48,9 @@ func app(input string) {
 		break
 	case "2":
 		createForm()
+		break
+	case "4":
+		deleteForm()
 		break
 	default:
 		displayMenu()
@@ -184,4 +188,51 @@ func getDbContent() string {
 	}
 	content := string(file)
 	return content
+}
+
+func deleteForm() {
+	view()
+	fmt.Println("============Delete Form=========")
+	fmt.Println("1. Chose a task to delete - by id")
+	reader.Scan()
+	id := reader.Text()
+	parsedID, err := strconv.Atoi(id)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(id)
+
+	for _, singleTask := range tasks {
+		if singleTask.id == parsedID {
+			deleteTask(&singleTask)
+		}
+	}
+}
+
+func deleteTask(t *Task) {
+	deleted := false
+	tasksString := ""
+	currentTaskString := ""
+	for _, singleTask := range tasks {
+		if singleTask.id != t.id {
+			if deleted == true {
+				fmt.Println("Should delete", singleTask)
+				t.id = singleTask.id - 1
+			}
+			currentTaskString = builtTaskString(singleTask)
+
+		} else {
+			deleted = true
+		}
+
+		tasksString += currentTaskString
+
+	}
+
+	//tasksStringBytes := []byte(tasksString)
+	fmt.Println(tasksString)
+	//if err != nil {
+	//	panic(err)
+	//}
+
 }
